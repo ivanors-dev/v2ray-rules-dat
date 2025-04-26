@@ -40,7 +40,6 @@ geoplugin.net
 fraudguard.io
 infobip.com
 ip.sb
-ipstack.com
 positionstack.com
 maxmind.com
 ipregistry.co
@@ -93,13 +92,17 @@ dns-leak.com
 dnsleaktest.org
 nordvpn.com
 browserleaks.org
-ipv6-test.com
-whoer.net
 ipbase.com
 criminalip.io
 ipapi.is
 ipdata.io
 ipaddress.my
+check.my
+ip138.com
+ip2location.io
+ipwho.is
+freeipapi.com
+
 
 # Keyword
 keyword:whatismyip
