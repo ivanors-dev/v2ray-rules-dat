@@ -24,5 +24,7 @@ full:captive.apple.com
 full:connectivity-check.ubuntu.com
 full:connectivitycheck.unisoc.com
 full:play.googleapis.com
+full:204.ecloud.global
+full:e.foundation
 keyword:connectivitycheck
 keyword:connectivity-check
