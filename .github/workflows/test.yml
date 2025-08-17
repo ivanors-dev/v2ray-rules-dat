@@ -1,9 +1,9 @@
-name: Convert Geosite to YAML
+name: Build geosite list
 
 on:
-  workflow_dispatch:   # Bisa dijalankan manual
+  workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *"   # Auto jalan tiap hari jam 00:00 UTC
+    - cron: "0 0 * * *"
 
 jobs:
   build:
@@ -11,11 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Download geosite.dat
-        run: |
-          wget https://github.com/malikshi/v2ray-rules-dat/releases/latest/download/geosite.dat -O geosite.dat
+        uses: actions/checkout@v4
 
       - name: Setup Go
         uses: actions/setup-go@v4
@@ -34,12 +30,27 @@ jobs:
           mkdir rules
           ./dlc export -f text -d geosite.dat -o rules
 
-      - name: Convert text lists to YAML
+      - name: Create Python script
         run: |
-          python3 - << 'EOF'
-import os, yaml
+          cat > convert.py << 'EOF'
+          import os, yaml
 
-output = {}
-for fn in os.listdir('rules'):
-    if fn.endswith('.txt'):
-        key = fn.rsplit('.', 1)[0]
+          output = {}
+          for fn in os.listdir('rules'):
+              if fn.endswith('.txt'):
+                  key = fn.rsplit('.', 1)[0]
+                  with open(os.path.join('rules', fn), encoding="utf-8") as f:
+                      output[key] = [line.strip() for line in f if line.strip()]
+
+          with open('geosite_list.yaml', 'w', encoding='utf-8') as f:
+              yaml.dump(output, f, allow_unicode=True, sort_keys=True)
+          EOF
+
+      - name: Run Python script
+        run: python3 convert.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: geosite-list
+          path: geosite_list.yaml
