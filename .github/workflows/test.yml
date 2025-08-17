@@ -1,34 +1,42 @@
-name: Convert Geosite to YAML
-on: workflow_dispatch
+name: Export geosite dat to YAML
+on:
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'
+      - name: Download geosite.dat
+        run: wget https://github.com/malikshi/v2ray-rules-dat/releases/latest/download/geosite.dat -O geosite.dat
 
-      - name: Clone domain-list-community
-        run: git clone https://github.com/v2fly/domain-list-community.git
-
-      - name: Build dlc
+      - name: Setup Go and build dlc
         run: |
+          git clone https://github.com/v2fly/domain-list-community.git
           cd domain-list-community
           go build -o dlc main.go
+          cd ..
 
-      - name: Download geosite.dat
+      - name: Convert geosite.dat to text lists
         run: |
-          wget https://github.com/malikshi/v2ray-rules-dat/releases/latest/download/geosite.dat -O geosite.dat
+          domain-list-community/dlc export -f text -d geosite.dat -o rules
 
-      - name: Convert to YAML
+      - name: Convert text lists to YAML
         run: |
-          cd domain-list-community
-          ../domain-list-community/dlc export -f yaml -d ../geosite.dat -o geosite.yaml
+          python3 - << 'EOF'
+import os, yaml
+output = {}
+for fn in os.listdir('rules'):
+    if fn.endswith('.txt'):
+        key = fn.rsplit('.', 1)[0]
+        with open(os.path.join('rules', fn)) as f:
+            output[key] = [line.strip() for line in f if line.strip()]
+with open('geosite_list.yaml', 'w', encoding='utf-8') as f:
+    yaml.dump(output, f, allow_unicode=True)
+EOF
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload YAML artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: geosite-yaml
-          path: geosite.yaml
+          name: geosite-list-yaml
+          path: geosite_list.yaml
